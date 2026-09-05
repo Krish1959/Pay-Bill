@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR-Code Generator - 360 Integrated FM &amp; SM</title>
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --gold: #FFD700;
+            --gold-dim: rgba(255, 215, 0, 0.35);
+            --gold-faint: rgba(255, 215, 0, 0.12);
+            --brown-deep: #2a1810;
+            --brown-dark: #3d2314;
+            --brown-mid: #5c3a2d;
+            --brown-light: #7a4f3a;
+            --cream: #F7EDD8;
+            --cream-dark: #E8D4A8;
+            --text-dark: #1a0f08;
+            --text-mid: #3d2314;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            min-height: 100vh;
+            background: #f0e8d8;
+            color: var(--text-dark);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3d2314 0%, #5c3a2d 25%, #3d2314 50%, #5c3a2d 75%, #3d2314 100%);
+            background-size: 400% 400%;
+            animation: glitter 3s ease-in-out infinite;
+            padding: 44px 20px 36px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 215, 0, 0.1) 25%,
+                rgba(255, 215, 0, 0.3) 50%,
+                rgba(255, 215, 0, 0.1) 75%,
+                transparent 100%
+            );
+            animation: shimmer 2.5s infinite;
+        }
+
+        @keyframes glitter {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-50%); }
+            100% { transform: translateX(50%); }
+        }
+
+        .header h1 {
+            color: var(--gold);
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 3.2rem;
+            font-weight: 700;
+            text-shadow:
+                0 0 10px rgba(255, 215, 0, 0.5),
+                0 0 20px rgba(255, 215, 0, 0.3),
+                0 0 40px rgba(255, 215, 0, 0.15),
+                2px 2px 4px rgba(0, 0, 0, 0.5);
+            letter-spacing: 2px;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 8px;
+        }
+
+        .header h2 {
+            color: var(--gold);
+            font-size: 1.15rem;
+            font-weight: 400;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            text-shadow:
+                0 0 8px rgba(255, 215, 0, 0.4),
+                1px 1px 3px rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 1;
+        }
+
+        .marquee-container {
+            background: linear-gradient(90deg, #2a1810 0%, #4a2c20 50%, #2a1810 100%);
+            overflow: hidden;
+            position: relative;
+            border-top: 2px solid rgba(255, 215, 0, 0.3);
+            border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .marquee-container::before,
+        .marquee-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            width: 100px;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .marquee-container::before {
+            left: 0;
+            background: linear-gradient(90deg, #2a1810 0%, transparent 100%);
+        }
+
+        .marquee-container::after {
+            right: 0;
+            background: linear-gradient(90deg, transparent 0%, #2a1810 100%);
+        }
+
+        .marquee-track {
+            display: flex;
+            animation: scroll 25s linear infinite;
+        }
+
+        .marquee-track:hover {
+            animation-play-state: paused;
+        }
+
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        .marquee-content {
+            display: flex;
+            align-items: center;
+            padding: 18px 0;
+            white-space: nowrap;
+        }
+
+        .marquee-text {
+            color: var(--gold);
+            font-size: 1.1rem;
+            font-weight: 500;
+            letter-spacing: 1px;
+            text-shadow:
+                0 0 10px rgba(255, 215, 0, 0.4),
+                0 0 20px rgba(255, 215, 0, 0.2);
+            padding: 0 30px;
+        }
+
+        .marquee-icon {
+            color: var(--gold);
+            font-size: 1.4rem;
+            opacity: 0.8;
+            animation: sparkle 1.5s ease-in-out infinite;
+        }
+
+        .marquee-icon:nth-child(odd) {
+            animation-delay: 0.75s;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .gold-divider {
+            height: 3px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(255, 215, 0, 0.3) 20%,
+                rgba(255, 215, 0, 0.8) 50%,
+                rgba(255, 215, 0, 0.3) 80%,
+                transparent 100%
+            );
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 28px;
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 36px 24px 46px;
+            align-items: start;
+        }
+
+        .content-panel {
+            grid-column: 1 / 8;
+        }
+
+        .qr-panel {
+            grid-column: 8 / 13;
+            position: sticky;
+            top: 20px;
+        }
+
+        .hero-sub {
+            font-size: 0.95rem;
+            color: var(--brown-mid);
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+
+        .hero-headline {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--brown-dark);
+            line-height: 1.25;
+            margin-bottom: 8px;
+            border-left: 4px solid var(--gold);
+            padding-left: 16px;
+        }
+
+        .company-subtitle {
+            color: var(--brown-mid);
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 1.4px;
+            line-height: 1.5;
+            margin: 0 0 28px 20px;
+            text-transform: uppercase;
+        }
+
+        .form-card,
+        .preview-card {
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 6px 30px rgba(61, 35, 20, 0.14);
+            border-top: 4px solid var(--gold);
+        }
+
+        .form-card {
+            padding: 26px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            color: var(--brown-dark);
+            font-weight: 700;
+            letter-spacing: 0.4px;
+        }
+
+        input {
+            width: 100%;
+            min-height: 48px;
+            border: 1px solid rgba(92, 58, 45, 0.24);
+            border-radius: 8px;
+            background: #fffbef;
+            color: var(--text-dark);
+            font: inherit;
+            font-size: 1rem;
+            padding: 12px 14px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--gold);
+            background: var(--white);
+            box-shadow: 0 0 0 4px var(--gold-faint);
+        }
+
+        button {
+            width: 100%;
+            min-height: 50px;
+            border: 0;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--brown-dark) 0%, var(--brown-mid) 100%);
+            color: var(--gold);
+            cursor: pointer;
+            font: inherit;
+            font-size: 0.98rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            box-shadow: 0 4px 16px rgba(61, 35, 20, 0.22);
+            transition: transform 0.18s, box-shadow 0.18s;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 7px 20px rgba(61, 35, 20, 0.28);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .preview-card {
+            padding: 24px;
+            text-align: center;
+        }
+
+        .preview-card h3 {
+            font-family: Georgia, 'Times New Roman', serif;
+            color: var(--brown-dark);
+            font-size: 1.35rem;
+            margin-bottom: 18px;
+        }
+
+        .qr-wrap {
+            width: min(100%, 300px);
+            aspect-ratio: 1;
+            margin: 0 auto 18px;
+            padding: 14px;
+            border-radius: 8px;
+            background: #ffffff;
+            border: 1px solid rgba(92, 58, 45, 0.16);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #qr-code {
+            width: 100%;
+            height: 100%;
+        }
+
+        .qr-placeholder {
+            color: rgba(61, 35, 20, 0.55);
+            border: 2px dashed rgba(92, 58, 45, 0.25);
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            line-height: 1.45;
+        }
+
+        .company-footer {
+            display: inline-block;
+            color: var(--brown-dark);
+            font-size: 0.95rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            line-height: 1.45;
+            text-decoration: none;
+        }
+
+        .footer {
+            background: var(--brown-deep);
+            text-align: center;
+            padding: 18px;
+            color: rgba(255, 215, 0, 0.62);
+            font-size: 0.78rem;
+            letter-spacing: 1.5px;
+        }
+
+        @media (max-width: 900px) {
+            .header {
+                padding: 28px 20px 22px;
+            }
+
+            .header h1 {
+                font-size: 2.1rem;
+            }
+
+            .header h2 {
+                font-size: 1rem;
+            }
+
+            .main-grid {
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+                padding: 22px 16px 32px;
+            }
+
+            .content-panel,
+            .qr-panel {
+                width: 100%;
+                position: static;
+            }
+
+            .hero-headline {
+                font-size: 1.5rem;
+            }
+
+            .marquee-text {
+                font-size: 1rem;
+            }
+
+            .marquee-container::before,
+            .marquee-container::after {
+                width: 40px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header {
+                padding: 22px 16px 18px;
+            }
+
+            .header h1 {
+                font-size: 1.75rem;
+                letter-spacing: 1px;
+            }
+
+            .header h2 {
+                font-size: 0.85rem;
+                letter-spacing: 3px;
+            }
+
+            .main-grid {
+                padding: 16px 12px 28px;
+            }
+
+            .hero-sub {
+                font-size: 0.78rem;
+                letter-spacing: 1.2px;
+                padding-left: 12px;
+            }
+
+            .hero-headline {
+                font-size: 1.28rem;
+                padding-left: 12px;
+            }
+
+            .company-subtitle {
+                margin-left: 16px;
+                font-size: 0.85rem;
+            }
+
+            .form-card,
+            .preview-card {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Avatar Agentic AI</h1>
+        <h2>Singapore</h2>
+    </header>
+
+    <div class="marquee-container">
+        <div class="marquee-track">
+            <div class="marquee-content">
+                <span class="marquee-icon">✦</span>
+                <span class="marquee-text">We empower your workforce with advanced agentic AI capabilities to lead your enterprise into Industry 4.0.</span>
+                <span class="marquee-icon">◆</span>
+                <span class="marquee-text">Autonomous agent swarms that orchestrate end-to-end daily operations with unprecedented precision.</span>
+                <span class="marquee-icon">✦</span>
+                <span class="marquee-text">Enterprise-grade AI governance with Human-in-the-Loop controls - trust, transparency, and total control.</span>
+                <span class="marquee-icon">◆</span>
+                <span class="marquee-text">Omnichannel agentic access via WhatsApp, Email, and Web portals - your AI workforce, always on.</span>
+                <span class="marquee-icon">✦</span>
+            </div>
+            <div class="marquee-content">
+                <span class="marquee-icon">✦</span>
+                <span class="marquee-text">We empower your workforce with advanced agentic AI capabilities to lead your enterprise into Industry 4.0.</span>
+                <span class="marquee-icon">◆</span>
+                <span class="marquee-text">Autonomous agent swarms that orchestrate end-to-end daily operations with unprecedented precision.</span>
+                <span class="marquee-icon">✦</span>
+                <span class="marquee-text">Enterprise-grade AI governance with Human-in-the-Loop controls - trust, transparency, and total control.</span>
+                <span class="marquee-icon">◆</span>
+                <span class="marquee-text">Omnichannel agentic access via WhatsApp, Email, and Web portals - your AI workforce, always on.</span>
+                <span class="marquee-icon">✦</span>
+            </div>
+        </div>
+    </div>
+    <div class="gold-divider"></div>
+
+    <main>
+        <div class="main-grid">
+            <section class="content-panel" aria-labelledby="generator-title">
+                <p class="hero-sub">Industry 4.0 &middot; Agentic Intelligence &middot; Singapore</p>
+                <h2 class="hero-headline" id="generator-title">QR-Code Generator for:</h2>
+                <p class="company-subtitle">360 INTEGRATED FM &amp; SM PTE.LTD.</p>
+
+                <form class="form-card" id="qr-form">
+                    <div class="input-group">
+                        <label for="description-input">Description:</label>
+                        <input type="text" id="description-input" name="description" value="Type the Item Description" maxlength="24">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="amount-input">Amount:</label>
+                        <input type="number" id="amount-input" name="amount" value="1.00" min="0" step="0.01">
+                    </div>
+
+                    <button type="submit">Generate QR Code</button>
+                </form>
+            </section>
+
+            <aside class="qr-panel" aria-label="QR code preview">
+                <div class="preview-card">
+                    <h3>QR code Pay</h3>
+                    <div class="qr-wrap">
+                        <div id="qr-code">
+                            <div class="qr-placeholder">QR code image will appear here</div>
+                        </div>
+                    </div>
+                    <p class="company-footer">360 INTEGRATED FM &amp; SM PTE. LTD.</p>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <footer class="footer">
+        &copy; 2026 360 INTEGRATED FM &amp; SM PTE. LTD. &middot; Singapore
+    </footer>
+
+    <script>
+        const form = document.getElementById('qr-form');
+        const descriptionInput = document.getElementById('description-input');
+        const amountInput = document.getElementById('amount-input');
+        const qrCode = document.getElementById('qr-code');
+        const defaultDescription = 'Type the Item Description';
+        const defaultAmount = '1.00';
+        const maxDescriptionLength = 24;
+        const samplePayNowPayload = '00020101021126560009SG.PAYNOW010120210202212959Z030110515Tap Replacement51800007SG.SGQR011222042232460A020701.000103065739690402060502760604000007082022042252040000530370254041.005802SG5922360 INTEGRATED FM & SM6009Singapore63049D73';
+
+        function formatLength(value) {
+            return String(value.length).padStart(2, '0');
+        }
+
+        function makeTlv(id, value) {
+            return `${id}${formatLength(value)}${value}`;
+        }
+
+        function parseTlv(payload) {
+            const fields = [];
+            let index = 0;
+
+            while (index + 4 <= payload.length) {
+                const id = payload.slice(index, index + 2);
+                const length = Number(payload.slice(index + 2, index + 4));
+                const valueStart = index + 4;
+                const valueEnd = valueStart + length;
+
+                fields.push({
+                    id: id,
+                    value: payload.slice(valueStart, valueEnd)
+                });
+
+                index = valueEnd;
+            }
+
+            return fields;
+        }
+
+        function serializeTlv(fields) {
+            return fields.map(function (field) {
+                return makeTlv(field.id, field.value);
+            }).join('');
+        }
+
+        function replaceField(fields, id, value) {
+            const field = fields.find(function (item) {
+                return item.id === id;
+            });
+
+            if (field) {
+                field.value = value;
+            }
+        }
+
+        function crc16CcittFalse(value) {
+            let crc = 0xffff;
+
+            for (let i = 0; i < value.length; i += 1) {
+                crc ^= value.charCodeAt(i) << 8;
+
+                for (let bit = 0; bit < 8; bit += 1) {
+                    if (crc & 0x8000) {
+                        crc = (crc << 1) ^ 0x1021;
+                    } else {
+                        crc <<= 1;
+                    }
+
+                    crc &= 0xffff;
+                }
+            }
+
+            return crc.toString(16).toUpperCase().padStart(4, '0');
+        }
+
+        function buildPayNowPayload(description, amount) {
+            const rootFields = parseTlv(samplePayNowPayload).filter(function (field) {
+                return field.id !== '63';
+            });
+            const payNowField = rootFields.find(function (field) {
+                return field.id === '26';
+            });
+            const payNowFields = parseTlv(payNowField.value);
+
+            replaceField(payNowFields, '05', description);
+            payNowField.value = serializeTlv(payNowFields);
+            replaceField(rootFields, '54', amount);
+
+            const payloadWithoutCrc = `${serializeTlv(rootFields)}6304`;
+            return `${payloadWithoutCrc}${crc16CcittFalse(payloadWithoutCrc)}`;
+        }
+
+        function generatePlaceholder(message) {
+            qrCode.innerHTML = `<div class="qr-placeholder">${message}</div>`;
+        }
+
+        function makeQrImage(url) {
+            const img = document.createElement('img');
+            img.alt = 'Payment QR code';
+            img.crossOrigin = 'anonymous';
+            img.width = 272;
+            img.height = 272;
+            img.style.width = '100%';
+            img.style.height = '100%';
+            img.style.display = 'block';
+            img.src = `https://api.qrserver.com/v1/create-qr-code/?size=272x272&margin=12&data=${encodeURIComponent(url)}`;
+            return img;
+        }
+
+        function formatAmount(value) {
+            const amount = Number(value);
+
+            if (!Number.isFinite(amount) || amount < 0) {
+                return '';
+            }
+
+            return amount.toFixed(2);
+        }
+
+        function generateQrCode() {
+            const description = descriptionInput.value.trim();
+            const amount = formatAmount(amountInput.value);
+            const hasNewDescription = description && description !== defaultDescription;
+            const hasDifferentAmount = amount && amount !== defaultAmount;
+
+            if (!hasNewDescription || !hasDifferentAmount) {
+                generatePlaceholder('QR code image will appear here');
+                alert('Enter values');
+                return;
+            }
+
+            const paymentText = buildPayNowPayload(description.slice(0, maxDescriptionLength), amount);
+
+            qrCode.replaceChildren(makeQrImage(paymentText));
+        }
+
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            generateQrCode();
+        });
+    </script>
+</body>
+</html>
